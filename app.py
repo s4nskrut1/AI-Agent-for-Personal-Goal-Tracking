@@ -336,4 +336,10 @@ with gr.Blocks(title="GoalMate — Autonomous AI Personal Goal Coach") as demo:
 
 
 if __name__ == "__main__":
-    demo.launch(server_name="127.0.0.1", server_port=7860, css=custom_css, theme=gr.themes.Base(), share=False)
+    port = int(os.getenv("PORT", os.getenv("GRADIO_SERVER_PORT", 7860)))
+    try:
+        demo.launch(server_name="127.0.0.1", server_port=port, css=custom_css, theme=gr.themes.Base(), share=False)
+    except OSError:
+        # Fallback to automatic available port selection if 7860 is busy
+        print(f"Port {port} is occupied. Finding the next available port...")
+        demo.launch(server_name="127.0.0.1", css=custom_css, theme=gr.themes.Base(), share=False)
