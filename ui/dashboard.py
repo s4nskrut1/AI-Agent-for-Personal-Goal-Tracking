@@ -37,36 +37,43 @@ AVATAR_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 AVATAR_URL = f"/gradio_api/file={FRONTEND_ASSET_DIR}/hinata_avatar.jpg"
 
 
-def load_dashboard_state(db=None):
+def load_dashboard_state(db=None, user_id=None):
     """Fetch all dynamic state from SQLite database."""
     close_db = False
     if db is None:
         db = get_session()
         close_db = True
     try:
-        goals = get_all_goals(db)
+        goals = get_all_goals(db, user_id=user_id)
         primary_goal = goals[0] if goals else None
-        stats = get_dashboard_stats(db)
-        today_tasks = get_today_tasks(db)
-        past_tasks = get_past_missed_tasks(db)
-        upcoming_tasks = get_upcoming_tasks(db)
-        weekly = get_weekly_data(db=db)
-        recent_activity = get_recent_activity(db=db)
+        stats = get_dashboard_stats(db, user_id=user_id)
+        today_tasks = get_today_tasks(db, user_id=user_id)
+        past_tasks = get_past_missed_tasks(db, user_id=user_id)
+        upcoming_tasks = get_upcoming_tasks(db, user_id=user_id)
+        weekly = get_weekly_data(db=db, user_id=user_id)
+        recent_activity = get_recent_activity(db=db, user_id=user_id)
         return goals, primary_goal, stats, today_tasks, past_tasks, upcoming_tasks, weekly, recent_activity
     finally:
         if close_db:
             db.close()
 
 
-def render_full_dashboard(selected_goal_id=None, current_view="dashboard"):
+def render_full_dashboard(selected_goal_id=None, current_view="dashboard", user_id=None, user_name=None):
     """Render all HTML components for the main dashboard, progress view, or a selected goal detail."""
     db = get_session()
     try:
-        goals, primary_goal, stats, today_tasks, past_tasks, upcoming_tasks, weekly, recent_activity = load_dashboard_state(db)
-        sidebar_html = render_sidebar_html(goals, selected_goal_id, current_view=current_view)
+        if user_id is None:
+            user_id = 1
+        if not user_name:
+            from backend.models import User
+            u = db.query(User).filter(User.id == user_id).first()
+            user_name = u.name if u else "Sanskriti"
+
+        goals, primary_goal, stats, today_tasks, past_tasks, upcoming_tasks, weekly, recent_activity = load_dashboard_state(db, user_id=user_id)
+        sidebar_html = render_sidebar_html(goals, selected_goal_id, current_view=current_view, user_name=user_name)
 
         if current_view == "progress":
-            overview = get_system_progress_overview(db)
+            overview = get_system_progress_overview(db, user_id=user_id)
             main_html = render_progress_analytics_view(overview)
             return sidebar_html, main_html
 
@@ -80,7 +87,7 @@ def render_full_dashboard(selected_goal_id=None, current_view="dashboard"):
                 return sidebar_html, main_html
 
         # Standard 3-row layout matching reference
-        hero = render_hero_banner(USER_NAME)
+        hero = render_hero_banner(user_name)
         curr_goal = render_current_goal_card(goals)
         quick_stats = render_quick_stats_card(stats)
         tasks_card = render_today_tasks_card(today_tasks)
@@ -112,6 +119,23 @@ JS_HEAD = """
 <script>
 window.gmCurrentGoalId = null;
 window.gmCurrentView = 'dashboard';
+
+function gmGetUserInfo() {
+    try {
+        const raw = localStorage.getItem('gm_user');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.id) return parsed;
+        }
+    } catch(e) {}
+    return { id: 1, name: 'Sanskriti' };
+}
+
+window.gmHandleLogout = function() {
+    localStorage.removeItem('gm_user');
+    localStorage.removeItem('gm_token');
+    window.location.href = '/login';
+};
 
 window.gmToggleTask = async function(taskId, markDone) {
     const chk = document.getElementById('task-check-' + taskId);
@@ -207,11 +231,13 @@ window.gmToggleGoalsMenu = function() {
 
 window.gmRefreshView = async function() {
     try {
-        let url = '/api/dashboard/html';
+        const u = gmGetUserInfo();
+        const qParams = `?user_id=${u.id}&user_name=${encodeURIComponent(u.name)}`;
+        let url = '/api/dashboard/html' + qParams;
         if (window.gmCurrentGoalId) {
-            url = '/api/goal/' + window.gmCurrentGoalId + '/html';
+            url = '/api/goal/' + window.gmCurrentGoalId + '/html' + qParams;
         } else if (window.gmCurrentView === 'progress') {
-            url = '/api/progress/html';
+            url = '/api/progress/html' + qParams;
         }
         const res = await fetch(url);
         const data = await res.json();
@@ -236,10 +262,17 @@ window.gmRefreshView = async function() {
     }
 };
 
+// Initial sync on client load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(window.gmRefreshView, 150);
+});
+setTimeout(window.gmRefreshView, 300);
+
 let lastStateHash = "";
 setInterval(async () => {
     try {
-        const res = await fetch('/api/db/state');
+        const u = gmGetUserInfo();
+        const res = await fetch(`/api/db/state?user_id=${u.id}`);
         const data = await res.json();
         if (lastStateHash && lastStateHash !== data.hash) {
             window.gmRefreshView();

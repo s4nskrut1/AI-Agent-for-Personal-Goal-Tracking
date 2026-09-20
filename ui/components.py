@@ -538,7 +538,7 @@ def render_daily_progress_curve_card(weekly_data: List[Dict]) -> str:
 render_visual_velocity_card = render_daily_progress_curve_card
 
 
-def render_sidebar_html(goals: List[Any], active_goal_id: Optional[int] = None, current_view: str = "dashboard") -> str:
+def render_sidebar_html(goals: List[Any], active_goal_id: Optional[int] = None, current_view: str = "dashboard", user_name: str = "Sanskriti") -> str:
     goals_html = []
     if goals:
         for g in goals:
@@ -596,12 +596,12 @@ def render_sidebar_html(goals: List[Any], active_goal_id: Optional[int] = None, 
 
 <div class="sidebar-spacer"></div>
 
-<div class="sidebar-user-footer" onclick="window.location.href='/login'" title="Account & Login Page">
+<div class="sidebar-user-footer" onclick="window.gmHandleLogout()" title="Click to Log Out / Switch Account">
     <div style="display:flex; align-items:center; justify-content:space-between;">
         <div style="display:flex; align-items:center; gap:8px;">
             <div style="width:28px; height:28px; border-radius:50%; background:#FFF0E6; display:flex; align-items:center; justify-content:center; font-size:0.85rem;">🏐</div>
             <div>
-                <div style="font-size:0.78rem; font-weight:800; color:#1A202C;">Sanskriti</div>
+                <div style="font-size:0.78rem; font-weight:800; color:#1A202C;">{user_name}</div>
                 <div style="font-size:0.68rem; color:#718096;">Log out &rarr;</div>
             </div>
         </div>

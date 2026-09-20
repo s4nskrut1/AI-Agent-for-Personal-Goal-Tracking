@@ -139,38 +139,43 @@ async def api_delete_goal(req: Request):
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 @f_app.get("/api/dashboard/html")
-async def api_dashboard_html():
+async def api_dashboard_html(user_id: int = 1, user_name: str = "Sanskriti"):
     try:
-        sidebar, main = render_full_dashboard(selected_goal_id=None, current_view="dashboard")
+        sidebar, main = render_full_dashboard(selected_goal_id=None, current_view="dashboard", user_id=user_id, user_name=user_name)
         return JSONResponse({"sidebar": sidebar, "main": main})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @f_app.get("/api/progress/html")
-async def api_progress_html():
+async def api_progress_html(user_id: int = 1, user_name: str = "Sanskriti"):
     try:
-        sidebar, main = render_full_dashboard(selected_goal_id=None, current_view="progress")
+        sidebar, main = render_full_dashboard(selected_goal_id=None, current_view="progress", user_id=user_id, user_name=user_name)
         return JSONResponse({"sidebar": sidebar, "main": main})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @f_app.get("/api/goal/{goal_id}/html")
-async def api_goal_html(goal_id: int):
+async def api_goal_html(goal_id: int, user_id: int = 1, user_name: str = "Sanskriti"):
     try:
-        sidebar, main = render_full_dashboard(selected_goal_id=goal_id, current_view="goal")
+        sidebar, main = render_full_dashboard(selected_goal_id=goal_id, current_view="goal", user_id=user_id, user_name=user_name)
         return JSONResponse({"sidebar": sidebar, "main": main})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @f_app.get("/api/db/state")
-async def api_db_state():
+async def api_db_state(user_id: int = 1):
     db = get_session()
     try:
         from backend.models import Goal, Task
-        g_count = db.query(Goal).count()
-        t_done = db.query(Task).filter(Task.status == "completed").count()
-        t_total = db.query(Task).count()
-        return JSONResponse({"hash": f"{g_count}-{t_done}-{t_total}"})
+        q_g = db.query(Goal).filter(Goal.status != "deleted")
+        q_t = db.query(Task)
+        if user_id:
+            q_g = q_g.filter(Goal.user_id == user_id)
+            q_t = q_t.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+        g_count = q_g.count()
+        t_done = q_t.filter(Task.status == "completed").count()
+        t_total = q_t.count()
+        return JSONResponse({"hash": f"{user_id}-{g_count}-{t_done}-{t_total}"})
     finally:
         db.close()
 

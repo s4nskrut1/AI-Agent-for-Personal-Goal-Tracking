@@ -21,17 +21,18 @@ def get_session() -> Session:
 
 # ─────────────────────────── GOAL OPERATIONS ────────────────────────────────
 
-def get_all_goals(db: Session = None) -> List[Goal]:
+def get_all_goals(db: Session = None, user_id: Optional[int] = None) -> List[Goal]:
     close = db is None
     if db is None:
         db = get_session()
     try:
-        return (db.query(Goal)
-                .options(joinedload(Goal.milestones).joinedload(Milestone.tasks),
-                         joinedload(Goal.tasks))
-                .filter(Goal.status != "deleted")
-                .order_by(Goal.created_at.desc())
-                .all())
+        q = (db.query(Goal)
+             .options(joinedload(Goal.milestones).joinedload(Milestone.tasks),
+                      joinedload(Goal.tasks))
+             .filter(Goal.status != "deleted"))
+        if user_id is not None:
+            q = q.filter(Goal.user_id == user_id)
+        return q.order_by(Goal.created_at.desc()).all()
     finally:
         if close:
             db.close()
@@ -59,7 +60,8 @@ def create_goal_record(
     category: str = "General",
     duration_days: int = 30,
     start_date: date = None,
-    db: Session = None
+    db: Session = None,
+    user_id: Optional[int] = 1
 ) -> Goal:
     close = db is None
     if db is None:
@@ -69,6 +71,7 @@ def create_goal_record(
             start_date = datetime.now().date()
         deadline = start_date + timedelta(days=duration_days)
         goal = Goal(
+            user_id=user_id,
             title=title,
             description=description,
             category=category,
@@ -217,13 +220,16 @@ def get_tasks_for_goal(goal_id: int, db: Session = None) -> List[Task]:
             db.close()
 
 
-def get_today_tasks(db: Session = None) -> List[Dict]:
+def get_today_tasks(db: Session = None, user_id: Optional[int] = None) -> List[Dict]:
     close = db is None
     if db is None:
         db = get_session()
     try:
         today = datetime.now().date()
-        tasks = db.query(Task).filter(Task.scheduled_date == today).order_by(Task.goal_id).all()
+        q = db.query(Task).filter(Task.scheduled_date == today)
+        if user_id is not None:
+            q = q.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+        tasks = q.order_by(Task.goal_id).all()
         result = []
         for t in tasks:
             goal = db.query(Goal).filter(Goal.id == t.goal_id).first()
@@ -240,16 +246,17 @@ def get_today_tasks(db: Session = None) -> List[Dict]:
             db.close()
 
 
-def get_past_missed_tasks(db: Session = None, limit: int = 15) -> List[Dict]:
+def get_past_missed_tasks(db: Session = None, limit: int = 15, user_id: Optional[int] = None) -> List[Dict]:
     """Return tasks scheduled before today (both pending and completed) for retroactive editing."""
     close = db is None
     if db is None:
         db = get_session()
     try:
         today = datetime.now().date()
-        tasks = (db.query(Task)
-                 .filter(Task.scheduled_date < today)
-                 .order_by(Task.scheduled_date.desc(), Task.id.desc())
+        q = db.query(Task).filter(Task.scheduled_date < today)
+        if user_id is not None:
+            q = q.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+        tasks = (q.order_by(Task.scheduled_date.desc(), Task.id.desc())
                  .limit(limit)
                  .all())
         result = []
@@ -271,16 +278,17 @@ def get_past_missed_tasks(db: Session = None, limit: int = 15) -> List[Dict]:
             db.close()
 
 
-def get_upcoming_tasks(db: Session = None, limit: int = 15) -> List[Dict]:
+def get_upcoming_tasks(db: Session = None, limit: int = 15, user_id: Optional[int] = None) -> List[Dict]:
     """Return tasks scheduled after today for upcoming schedule."""
     close = db is None
     if db is None:
         db = get_session()
     try:
         today = datetime.now().date()
-        tasks = (db.query(Task)
-                 .filter(Task.scheduled_date > today)
-                 .order_by(Task.scheduled_date.asc(), Task.id.asc())
+        q = db.query(Task).filter(Task.scheduled_date > today)
+        if user_id is not None:
+            q = q.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+        tasks = (q.order_by(Task.scheduled_date.asc(), Task.id.asc())
                  .limit(limit)
                  .all())
         result = []
@@ -389,7 +397,7 @@ def replan_goal(goal_id: int, new_duration_days: int, db: Session = None) -> Opt
 
 # ─────────────────────────── ANALYTICS ──────────────────────────────────────
 
-def get_weekly_data(goal_id: Any = None, db: Session = None) -> List[Dict]:
+def get_weekly_data(goal_id: Any = None, db: Session = None, user_id: Optional[int] = None) -> List[Dict]:
     if hasattr(goal_id, "query") and db is None:
         db = goal_id
         goal_id = None
@@ -404,7 +412,10 @@ def get_weekly_data(goal_id: Any = None, db: Session = None) -> List[Dict]:
             if g and g.start_date:
                 start_date = g.start_date
         else:
-            primary_goal = db.query(Goal).filter(Goal.status == "active").first()
+            q_g = db.query(Goal).filter(Goal.status == "active")
+            if user_id is not None:
+                q_g = q_g.filter(Goal.user_id == user_id)
+            primary_goal = q_g.first()
             if primary_goal and primary_goal.start_date:
                 start_date = primary_goal.start_date
 
@@ -421,6 +432,8 @@ def get_weekly_data(goal_id: Any = None, db: Session = None) -> List[Dict]:
             query = db.query(Task).filter(Task.scheduled_date == d)
             if goal_id:
                 query = query.filter(Task.goal_id == goal_id)
+            elif user_id is not None:
+                query = query.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
             tasks = query.all()
             total = len(tasks)
             done = sum(1 for t in tasks if t.status == "completed")
@@ -445,7 +458,7 @@ def get_goal_daily_progress(goal_id: int, db: Session = None) -> List[Dict]:
     return get_weekly_data(goal_id=goal_id, db=db)
 
 
-def get_visual_velocity_analytics(db: Session = None) -> Dict:
+def get_visual_velocity_analytics(db: Session = None, user_id: Optional[int] = None) -> Dict:
     """Compute visual graph data: 7-day completion curve, velocity, and goal distribution."""
     close = db is None
     if db is None:
@@ -458,7 +471,10 @@ def get_visual_velocity_analytics(db: Session = None) -> Dict:
 
         for i in range(6, -1, -1):
             d = today - timedelta(days=i)
-            tasks = db.query(Task).filter(Task.scheduled_date == d).all()
+            q_t = db.query(Task).filter(Task.scheduled_date == d)
+            if user_id is not None:
+                q_t = q_t.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+            tasks = q_t.all()
             done = sum(1 for t in tasks if t.status == "completed")
             cumulative += done
             total_week_done += done
@@ -469,7 +485,10 @@ def get_visual_velocity_analytics(db: Session = None) -> Dict:
                 "cumulative": cumulative
             })
 
-        goals = db.query(Goal).filter(Goal.status != "deleted").all()
+        q_g = db.query(Goal).filter(Goal.status != "deleted")
+        if user_id is not None:
+            q_g = q_g.filter(Goal.user_id == user_id)
+        goals = q_g.all()
         goal_breakdown = []
         for g in goals:
             goal_breakdown.append({
@@ -532,7 +551,7 @@ def get_goal_pace_trajectory(goal_id: int, db: Session = None) -> Dict:
             db.close()
 
 
-def get_streak(db: Session = None) -> int:
+def get_streak(db: Session = None, user_id: Optional[int] = None) -> int:
     close = db is None
     if db is None:
         db = get_session()
@@ -541,7 +560,10 @@ def get_streak(db: Session = None) -> int:
         streak = 0
         for i in range(365):
             d = today - timedelta(days=i)
-            tasks = db.query(Task).filter(Task.scheduled_date == d).all()
+            q_t = db.query(Task).filter(Task.scheduled_date == d)
+            if user_id is not None:
+                q_t = q_t.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+            tasks = q_t.all()
             if not tasks:
                 continue
             completed = all(t.status == "completed" for t in tasks)
@@ -555,12 +577,15 @@ def get_streak(db: Session = None) -> int:
             db.close()
 
 
-def get_recent_activity(limit: int = 8, db: Session = None) -> List[Dict]:
+def get_recent_activity(limit: int = 8, db: Session = None, user_id: Optional[int] = None) -> List[Dict]:
     close = db is None
     if db is None:
         db = get_session()
     try:
-        logs = db.query(ActivityLog).order_by(ActivityLog.created_at.desc()).limit(limit).all()
+        q = db.query(ActivityLog)
+        if user_id is not None:
+            q = q.join(Goal, ActivityLog.goal_id == Goal.id).filter(Goal.user_id == user_id)
+        logs = q.order_by(ActivityLog.created_at.desc()).limit(limit).all()
         result = []
         for log in logs:
             delta = datetime.now() - log.created_at
@@ -582,19 +607,26 @@ def get_recent_activity(limit: int = 8, db: Session = None) -> List[Dict]:
             db.close()
 
 
-def get_dashboard_stats(db: Session = None) -> Dict:
+def get_dashboard_stats(db: Session = None, user_id: Optional[int] = None) -> Dict:
     close = db is None
     if db is None:
         db = get_session()
     try:
-        goals = db.query(Goal).filter(Goal.status == "active").all()
+        q_g = db.query(Goal).filter(Goal.status == "active")
+        if user_id is not None:
+            q_g = q_g.filter(Goal.user_id == user_id)
+        goals = q_g.all()
+
         today = datetime.now().date()
-        today_tasks = db.query(Task).filter(Task.scheduled_date == today).all()
+        q_t = db.query(Task).filter(Task.scheduled_date == today)
+        if user_id is not None:
+            q_t = q_t.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+        today_tasks = q_t.all()
         return {
             "total_goals": len(goals),
             "active_tasks": sum(1 for t in today_tasks if t.status == "pending"),
             "completed_today": sum(1 for t in today_tasks if t.status == "completed"),
-            "streak": get_streak(db)
+            "streak": get_streak(db, user_id=user_id)
         }
     finally:
         if close:
@@ -612,7 +644,7 @@ def log_activity(db: Session, goal_id: Optional[int], event_type: str, descripti
         logger.warning(f"Activity log error: {e}")
 
 
-def get_one_month_activity(db: Session = None) -> List[Dict]:
+def get_one_month_activity(db: Session = None, user_id: Optional[int] = None) -> List[Dict]:
     """Generates clean 28-35 days of daily task activity data for the compact 1-month heatmap."""
     close = db is None
     if db is None:
@@ -627,7 +659,10 @@ def get_one_month_activity(db: Session = None) -> List[Dict]:
         days_data = []
         curr = aligned_start
         while curr <= today:
-            tasks = db.query(Task).filter(Task.scheduled_date == curr).all()
+            q_t = db.query(Task).filter(Task.scheduled_date == curr)
+            if user_id is not None:
+                q_t = q_t.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+            tasks = q_t.all()
             total = len(tasks)
             done = sum(1 for t in tasks if t.status == "completed")
 
@@ -658,19 +693,27 @@ def get_one_month_activity(db: Session = None) -> List[Dict]:
             db.close()
 
 
-def get_system_progress_overview(db: Session = None) -> Dict:
+def get_system_progress_overview(db: Session = None, user_id: Optional[int] = None) -> Dict:
     """Calculates clean, balanced metrics for the dedicated Progress & Analytics view."""
     close = db is None
     if db is None:
         db = get_session()
     try:
-        goals = db.query(Goal).filter(Goal.status != "deleted").all()
-        tasks = db.query(Task).all()
+        q_g = db.query(Goal).filter(Goal.status != "deleted")
+        if user_id is not None:
+            q_g = q_g.filter(Goal.user_id == user_id)
+        goals = q_g.all()
+
+        q_t = db.query(Task)
+        if user_id is not None:
+            q_t = q_t.join(Goal, Task.goal_id == Goal.id).filter(Goal.user_id == user_id)
+        tasks = q_t.all()
+
         total_tasks = len(tasks)
         completed_tasks = sum(1 for t in tasks if t.status == "completed")
         pending_tasks = total_tasks - completed_tasks
         overall_pct = round((completed_tasks / max(1, total_tasks)) * 100)
-        streak = get_streak(db)
+        streak = get_streak(db, user_id=user_id)
 
         goal_metrics = []
         for g in goals:
@@ -684,8 +727,8 @@ def get_system_progress_overview(db: Session = None) -> Dict:
                 "days_remaining": g.days_remaining
             })
 
-        heatmap = get_one_month_activity(db)
-        velocity_stats = get_visual_velocity_analytics(db)
+        heatmap = get_one_month_activity(db, user_id=user_id)
+        velocity_stats = get_visual_velocity_analytics(db, user_id=user_id)
 
         return {
             "total_goals": len(goals),

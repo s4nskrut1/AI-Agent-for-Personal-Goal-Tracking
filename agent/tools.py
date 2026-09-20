@@ -150,15 +150,15 @@ TOOL_DECLARATIONS = [
 
 # ─────────────────────────── TOOL EXECUTORS ─────────────────────────────────
 
-def execute_tool(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+def execute_tool(tool_name: str, args: Dict[str, Any], user_id: Optional[int] = 1) -> Dict[str, Any]:
     """Route tool calls to appropriate functions and return results."""
     try:
         if tool_name == "get_user_progress_summary":
-            return tool_get_progress_summary()
+            return tool_get_progress_summary(user_id=user_id)
         elif tool_name == "get_today_tasks_list":
-            return tool_get_today_tasks()
+            return tool_get_today_tasks(user_id=user_id)
         elif tool_name == "create_goal_with_plan":
-            return tool_create_goal_with_plan(**args)
+            return tool_create_goal_with_plan(**args, user_id=user_id)
         elif tool_name == "complete_task_by_id":
             return tool_complete_task(args["task_id"], args.get("completed", True))
         elif tool_name == "replan_goal_duration":
@@ -178,13 +178,12 @@ def execute_tool(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
-def tool_get_progress_summary() -> Dict:
+def tool_get_progress_summary(user_id: Optional[int] = 1) -> Dict:
     db = get_session()
     try:
-        goals = get_all_goals(db)
-        streak = get_streak(db)
-        stats = get_dashboard_stats(db)
-        today_tasks = get_today_tasks(db)
+        goals = get_all_goals(db, user_id=user_id)
+        streak = get_streak(db, user_id=user_id)
+        today_tasks = get_today_tasks(db, user_id=user_id)
         
         goal_summaries = []
         for g in goals:
@@ -220,10 +219,10 @@ def tool_get_progress_summary() -> Dict:
         db.close()
 
 
-def tool_get_today_tasks() -> Dict:
+def tool_get_today_tasks(user_id: Optional[int] = 1) -> Dict:
     db = get_session()
     try:
-        tasks = get_today_tasks(db)
+        tasks = get_today_tasks(db, user_id=user_id)
         pending = [t for t in tasks if t["status"] == "pending"]
         completed = [t for t in tasks if t["status"] == "completed"]
         return {
@@ -243,13 +242,14 @@ def tool_create_goal_with_plan(
     milestones: List[str],
     tasks: List[Dict],
     description: str = "",
-    category: str = "Learning"
+    category: str = "Learning",
+    user_id: Optional[int] = 1
 ) -> Dict:
     db = get_session()
     try:
         # Create goal
         start_date = datetime.now().date()
-        goal = create_goal_record(title, description, category, duration_days, start_date, db)
+        goal = create_goal_record(title, description, category, duration_days, start_date, db=db, user_id=user_id)
         
         # Create milestones
         milestone_objects = []

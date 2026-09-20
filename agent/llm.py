@@ -79,7 +79,7 @@ def call_gemini(messages: List[Dict], tools: List[Dict] = None, model: str = Non
     raise RuntimeError("All Gemini models unavailable")
 
 
-def agent_chat(user_message: str, history: List[Dict]) -> Tuple[str, List[Dict], List[str]]:
+def agent_chat(user_message: str, history: List[Dict], user_id: int = 1) -> Tuple[str, List[Dict], List[str]]:
     """
     Main agentic chat function.
     Returns: (reply_text, updated_history, list_of_actions_taken)
@@ -104,16 +104,16 @@ def agent_chat(user_message: str, history: List[Dict]) -> Tuple[str, List[Dict],
     })
     
     actions_taken = []
-    max_tool_loops = 4  # prevent infinite tool loops
     
-    for loop_i in range(max_tool_loops):
+    # Agentic tool calling loop (max 4 turns)
+    for turn in range(4):
         try:
-            response = call_gemini(gemini_messages, TOOL_DECLARATIONS)
+            resp = call_gemini(gemini_messages, tools=TOOL_DECLARATIONS)
         except Exception as e:
-            logger.error(f"Gemini call failed: {e}")
-            return f"I'm having trouble connecting to Gemini right now. Error: {str(e)[:100]}", history, []
+            logger.error(f"Gemini API call failed: {e}")
+            return f"Error communicating with AI model: {e}", history, actions_taken
         
-        candidates = response.get("candidates", [])
+        candidates = resp.get("candidates", [])
         if not candidates:
             break
         
@@ -148,7 +148,7 @@ def agent_chat(user_message: str, history: List[Dict]) -> Tuple[str, List[Dict],
             tool_args = fc.get("args", {})
             
             logger.info(f"Executing tool: {tool_name} with args: {tool_args}")
-            result = execute_tool(tool_name, tool_args)
+            result = execute_tool(tool_name, tool_args, user_id=user_id)
             actions_taken.append(tool_name)
             
             function_results.append({
