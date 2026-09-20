@@ -40,28 +40,9 @@ Tell it:
 
 The agent can turn that one sentence into a structured execution plan — then continue working with the plan as your situation changes.
 
-~~~text
-                 "I want to learn Angular in 30 days"
-                                │
-                                ▼
-                         ┌─────────────┐
-                         │  AI Agent   │
-                         └──────┬──────┘
-                                │
-                 ┌──────────────┼──────────────┐
-                 ▼              ▼              ▼
-             Milestones       Tasks        Schedule
-                 │              │              │
-                 └──────────────┼──────────────┘
-                                ▼
-                         Persistent State
-                                │
-                                ▼
-                       Progress + Analytics
-                                │
-                                ▼
-                       Adaptive Replanning
-~~~
+<p align="center">
+  <img src="./screenshots/The%20idea.png" alt="GoalMate — The Idea Flow" width="96%"/>
+</p>
 
 The important part is that the LLM isn't treated as the source of truth.
 
@@ -135,6 +116,21 @@ The agent is explicitly instructed not to invent progress data.
 ---
 
 # 🖥️ Product Tour
+
+## Authentication
+
+<p align="center">
+  <img src="./screenshots/login page.png" alt="GoalMate Authentication" width="90%"/>
+</p>
+
+GoalMate includes an authentication layer using:
+
+<strong>bcrypt password hashing + JWT access tokens + user-scoped goal data</strong>
+
+The backend exposes registration, login and authenticated API routes, allowing the application to move beyond a single shared goal space.
+
+
+---
 
 ## Dashboard
 
@@ -220,61 +216,14 @@ The Progress view turns task history into usable signals such as:
 
 ---
 
-## Authentication
-
-<p align="center">
-  <img src="./screenshots/login page.png" alt="GoalMate Authentication" width="70%"/>
-</p>
-
-GoalMate includes an authentication layer using:
-
-<strong>bcrypt password hashing + JWT access tokens + user-scoped goal data</strong>
-
-The backend exposes registration, login and authenticated API routes, allowing the application to move beyond a single shared goal space.
-
----
 
 # ⚙️ How the Agent Works
 
 GoalMate follows an agentic execution loop rather than simply sending every message to an LLM and displaying the response.
 
-~~~text
-┌──────────────────┐
-│   User Message   │
-└────────┬─────────┘
-         ▼
-┌──────────────────┐
-│ Intent / Context │
-│     Analysis     │
-└────────┬─────────┘
-         ▼
-┌──────────────────┐
-│   Gemini LLM     │
-│ Reason + Decide  │
-└────────┬─────────┘
-         │
-         │ function call
-         ▼
-┌──────────────────┐
-│    Tool Router   │
-└────────┬─────────┘
-         ▼
-┌──────────────────┐
-│ Backend Services │
-│ + Database State │
-└────────┬─────────┘
-         │
-         │ tool result
-         ▼
-┌──────────────────┐
-│   Gemini LLM     │
-│ Interpret Result │
-└────────┬─────────┘
-         ▼
-┌──────────────────┐
-│   User Response  │
-└──────────────────┘
-~~~
+<p align="center">
+  <img src="./screenshots/How%20the%20agent%20works.png" alt="GoalMate — How the Agent Works" width="96%"/>
+</p>
 
 ### Example
 
