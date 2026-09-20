@@ -6,7 +6,7 @@ import os
 import datetime
 from typing import Optional, Dict, Any
 from jose import jwt, JWTError
-from passlib.context import CryptContext
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -21,19 +21,23 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "goalmate_academic_hackathon_super_
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 hours
 
-# Password context with bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 def hash_password(password: str) -> str:
-    """Hashes plain text password securely using bcrypt."""
-    return pwd_context.hash(password)
+    """Hashes plain text password securely using native bcrypt (bypassing passlib 72-byte bug)."""
+    pwd_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifies plain text password against stored bcrypt hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        pwd_bytes = plain_password.encode("utf-8")[:72]
+        return bcrypt.checkpw(pwd_bytes, hashed_password.encode("utf-8"))
+    except Exception:
+        return False
 
 
 def create_access_token(data: Any, email: Optional[str] = None, expires_delta: Optional[datetime.timedelta] = None) -> str:
