@@ -328,7 +328,7 @@ def render_login_page() -> str:
                     <label class="form-label" id="email-label">Email or Username</label>
                     <div class="input-wrap">
                         <span class="input-icon">✉️</span>
-                        <input type="text" id="auth-email" class="input-field" placeholder="Enter your email or username" required value="sanskriti@example.com">
+                        <input type="text" id="auth-email" class="input-field" placeholder="Enter your email or username" required>
                     </div>
                 </div>
 
@@ -336,14 +336,14 @@ def render_login_page() -> str:
                     <label class="form-label">Password</label>
                     <div class="input-wrap">
                         <span class="input-icon">🔒</span>
-                        <input type="password" id="auth-password" class="input-field" placeholder="Enter your password" required value="password123">
+                        <input type="password" id="auth-password" class="input-field" placeholder="Enter your password" required>
                         <button type="button" class="eye-toggle-btn" onclick="window.togglePasswordVisibility()">👁️</button>
                     </div>
                 </div>
 
                 <div class="form-aux-row" id="aux-row">
                     <label class="remember-label">
-                        <input type="checkbox" id="remember-me" checked>
+                        <input type="checkbox" id="remember-me">
                         <span>Remember me</span>
                     </label>
                     <a class="forgot-link" onclick="alert('Password reset link has been dispatched to your email.')">Forgot password?</a>
@@ -420,7 +420,7 @@ def render_login_page() -> str:
 
             const endpoint = isSignUpMode ? '/api/auth/register' : '/api/auth/login';
             const payload = isSignUpMode 
-                ? {{ name: name || 'Sanskriti', email: email, password: password }}
+                ? {{ name: name || email.split('@')[0], email: email, password: password }}
                 : {{ email: email, password: password }};
 
             try {{
@@ -432,7 +432,7 @@ def render_login_page() -> str:
                 const data = await res.json();
                 if (data.success) {{
                     localStorage.setItem('gm_token', data.token || 'auth_token');
-                    localStorage.setItem('gm_user', JSON.stringify(data.user || {{ name: 'Sanskriti' }}));
+                    localStorage.setItem('gm_user', JSON.stringify(data.user || {{ name: 'User' }}));
                     window.location.href = '/';
                 }} else {{
                     errBox.innerText = data.error || 'Authentication failed. Please check credentials.';
