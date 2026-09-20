@@ -262,11 +262,18 @@ window.gmRefreshView = async function() {
     }
 };
 
-// Initial sync on client load
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(window.gmRefreshView, 150);
-});
-setTimeout(window.gmRefreshView, 300);
+// Initial sync on client load: ensure elements are ready before rendering
+let gmInitialSyncAttempts = 0;
+function gmEnsureInitialSync() {
+    const mainBox = document.getElementById('gm-main-container');
+    if (mainBox) {
+        window.gmRefreshView();
+    } else if (gmInitialSyncAttempts < 30) {
+        gmInitialSyncAttempts++;
+        setTimeout(gmEnsureInitialSync, 150);
+    }
+}
+gmEnsureInitialSync();
 
 let lastStateHash = "";
 setInterval(async () => {
@@ -274,12 +281,12 @@ setInterval(async () => {
         const u = gmGetUserInfo();
         const res = await fetch(`/api/db/state?user_id=${u.id}`);
         const data = await res.json();
-        if (lastStateHash && lastStateHash !== data.hash) {
+        if (data.hash && data.hash !== lastStateHash) {
             window.gmRefreshView();
+            lastStateHash = data.hash;
         }
-        lastStateHash = data.hash;
     } catch (e) {}
-}, 2500);
+}, 2000);
 </script>
 """
 
@@ -381,5 +388,14 @@ def build_app():
             inputs=[chat_input, chat_state],
             outputs=[chatbot, chat_state, chat_input, sidebar_display, main_display]
         )
+
+        def on_app_load():
+            s_bar, m_dash = render_full_dashboard(user_id=1)
+            return (
+                f'<div id="gm-sidebar-container" style="height:100%; display:flex; flex-direction:column;">{s_bar}</div>',
+                f'<div id="gm-main-container">{m_dash}</div>'
+            )
+
+        app.load(on_app_load, inputs=None, outputs=[sidebar_display, main_display])
 
     return app
