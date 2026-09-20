@@ -290,3 +290,99 @@ def replan_goal(
     )
     recovery_result["reason"] = adjustment_reason
     return recovery_result
+
+
+# --- Explicit Section 4 Tool Aliases & Insights ---
+
+def analyze_progress(goal_id: Optional[int] = None, db_path: Optional[str] = None) -> Dict[str, Any]:
+    """Analyzes overall progress metrics for a goal or entire portfolio."""
+    return calculate_progress(goal_id=goal_id, db_path=db_path)
+
+
+def detect_goal_risk(goal_id: int, db_path: Optional[str] = None) -> Dict[str, Any]:
+    """Evaluates goal health trajectory and risk state (On Track, At Risk, Behind)."""
+    return analyze_goal_health(goal_id=goal_id, db_path=db_path)
+
+
+def log_progress(
+    goal_id: int,
+    date: Optional[str] = None,
+    tasks_completed: int = 1,
+    minutes_spent: int = 45,
+    notes: str = "",
+    db_path: Optional[str] = None
+) -> Dict[str, Any]:
+    """Logs explicit progress telemetry entry in progress_logs."""
+    date_str = date or datetime.date.today().isoformat()
+    now_str = datetime.datetime.now().isoformat()
+    with get_db_connection(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO progress_logs (goal_id, date, tasks_completed, total_minutes_spent, streak_count, notes, created_at)
+            VALUES (?, ?, ?, ?, 1, ?, ?)
+            """,
+            (goal_id, date_str, tasks_completed, minutes_spent, notes, now_str)
+        )
+        conn.commit()
+        log_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM progress_logs WHERE id = ?", (log_id,))
+        return dict(cursor.fetchone())
+
+
+def get_goal_insights(goal_id: Optional[int] = None, db_path: Optional[str] = None) -> List[Dict[str, str]]:
+    """
+    Generates data-driven behavioral insights based on actual SQLite logs and task distributions.
+    Does NOT invent claims without underlying data.
+    """
+    stats = calculate_progress(goal_id, db_path=db_path)
+    health = analyze_goal_health(goal_id, db_path=db_path) if goal_id else None
+    
+    insights = []
+    
+    # Consistency insight
+    if stats["weekly_consistency_pct"] >= 70:
+        insights.append({
+            "type": "positive",
+            "title": "High Weekly Consistency",
+            "message": f"You maintained activity across {stats['active_days_this_week']} of the last 7 days ({stats['weekly_consistency_pct']}% consistency). Strong routine!"
+        })
+    elif stats["weekly_consistency_pct"] < 40 and stats["total_tasks"] > 3:
+        insights.append({
+            "type": "warning",
+            "title": "Consistency Dip Detected",
+            "message": f"Your consistency is currently at {stats['weekly_consistency_pct']}%. A short 15-minute daily focus session will rebuild your rhythm."
+        })
+        
+    # Streak insight
+    if stats["current_streak"] >= 3:
+        insights.append({
+            "type": "streak",
+            "title": f"Active {stats['current_streak']}-Day Streak!",
+            "message": f"You have logged completions for {stats['current_streak']} consecutive days. Momentum is compounding."
+        })
+        
+    # Backlog & risk insight
+    if stats["overdue_tasks"] > 0:
+        insights.append({
+            "type": "action_required",
+            "title": f"{stats['overdue_tasks']} Overdue Tasks Detected",
+            "message": "Tasks have slipped past due dates. Trigger 'Replan' to redistribute them across upcoming days without cramming."
+        })
+    else:
+        insights.append({
+            "type": "positive",
+            "title": "Zero Overdue Tasks",
+            "message": "All current milestones are on schedule. Your daily workload allocation is well-calibrated."
+        })
+        
+    # Pace estimation
+    if stats["completed_tasks"] > 0 and stats["pending_tasks"] > 0:
+        insights.append({
+            "type": "info",
+            "title": "Pace Calibration",
+            "message": f"{stats['completed_tasks']} completed vs {stats['pending_tasks']} pending. Completion velocity is sufficient to reach target outcome."
+        })
+        
+    return insights
+

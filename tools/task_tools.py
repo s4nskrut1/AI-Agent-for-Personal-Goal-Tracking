@@ -278,3 +278,98 @@ def batch_reschedule_tasks(
                 })
         conn.commit()
     return updated_tasks
+
+
+def create_tasks(
+    goal_id: int,
+    tasks: List[Dict[str, Any]],
+    milestone_id: Optional[int] = None,
+    db_path: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Batch creates multiple tasks for a goal."""
+    results = []
+    for t in tasks:
+        created = create_task(
+            goal_id=goal_id,
+            title=t.get("title", "Task"),
+            milestone_id=t.get("milestone_id", milestone_id),
+            description=t.get("description", ""),
+            due_date=t.get("due_date"),
+            estimated_minutes=t.get("estimated_minutes", 45),
+            priority=t.get("priority", "Medium"),
+            db_path=db_path
+        )
+        results.append(created)
+    return results
+
+
+def get_today_tasks(goal_id: Optional[int] = None, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retrieves tasks scheduled for today (or earlier if pending/overdue)."""
+    today_str = datetime.date.today().isoformat()
+    with get_db_connection(db_path) as conn:
+        cursor = conn.cursor()
+        if goal_id:
+            cursor.execute(
+                """
+                SELECT * FROM tasks 
+                WHERE goal_id = ? AND (due_date = ? OR (status IN ('pending', 'rescheduled') AND due_date <= ?))
+                ORDER BY status ASC, priority DESC, due_date ASC
+                """,
+                (goal_id, today_str, today_str)
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT * FROM tasks 
+                WHERE due_date = ? OR (status IN ('pending', 'rescheduled') AND due_date <= ?)
+                ORDER BY status ASC, priority DESC, due_date ASC
+                """,
+                (today_str, today_str)
+            )
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_upcoming_tasks(goal_id: Optional[int] = None, days: int = 7, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retrieves tasks scheduled between tomorrow and days ahead."""
+    today = datetime.date.today()
+    tomorrow_str = (today + datetime.timedelta(days=1)).isoformat()
+    future_str = (today + datetime.timedelta(days=days)).isoformat()
+    with get_db_connection(db_path) as conn:
+        cursor = conn.cursor()
+        if goal_id:
+            cursor.execute(
+                """
+                SELECT * FROM tasks 
+                WHERE goal_id = ? AND due_date BETWEEN ? AND ?
+                ORDER BY due_date ASC, priority DESC
+                """,
+                (goal_id, tomorrow_str, future_str)
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT * FROM tasks 
+                WHERE due_date BETWEEN ? AND ?
+                ORDER BY due_date ASC, priority DESC
+                """,
+                (tomorrow_str, future_str)
+            )
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def update_task_status(task_id: int, status: str, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Updates the status of a task ('pending', 'completed', 'rescheduled', 'missed')."""
+    if status == "completed":
+        return complete_task(task_id, db_path=db_path)
+    now_str = datetime.datetime.now().isoformat()
+    with get_db_connection(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?",
+            (status, now_str, task_id)
+        )
+        conn.commit()
+        cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+

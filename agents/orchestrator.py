@@ -36,19 +36,22 @@ class AgentOrchestrator:
         text = user_message.lower().strip()
         
         # 1. High-confidence heuristic matches (instant routing)
-        if any(p in text for p in ["haven't studied", "haven't done", "missed", "falling behind", "reschedule", "replan", "adjust my plan", "only have 30 min", "only have 15 min", "catch up"]):
+        if any(p in text for p in ["couldn't study", "could not study", "haven't studied", "haven't done", "missed", "falling behind", "reschedule", "replan", "adjust my plan", "only have 30 min", "only have 15 min", "catch up", "college got hectic", "got hectic", "behind"]):
             return "REPLAN"
             
         if any(p in text for p in ["weekly review", "weekly summary", "how did this week go", "week report"]):
             return "WEEKLY_REVIEW"
+
+        if any(p in text for p in ["today's tasks", "todays tasks", "today tasks", "what should i do today", "tasks for today", "plan for today", "see your plan for today"]):
+            return "VIEW_TODAY_TASKS"
             
-        if any(p in text for p in ["daily check-in", "daily check in", "check in", "check-in", "how did today go", "today was", "didn't do much", "busy with college"]):
+        if any(p in text for p in ["daily check-in", "daily check in", "check in", "check-in", "how did today go", "today was", "didn't do much"]):
             return "DAILY_CHECK_IN"
             
-        if any(p in text for p in ["completed task", "marked done", "finished task", "mark as completed", "done with task"]):
+        if any(p in text for p in ["completed task", "marked done", "finished task", "mark as completed", "done with task", "mark python", "finished today"]):
             return "COMPLETE_TASK"
             
-        if any(p in text for p in ["my progress", "show progress", "how am i doing", "view stats", "progress report", "am i on track"]):
+        if any(p in text for p in ["my progress", "show progress", "how am i doing", "view stats", "progress report", "am i on track", "how close am i"]):
             return "VIEW_PROGRESS"
             
         if any(p in text for p in ["my goals", "view goals", "list goals", "all goals"]):
@@ -57,11 +60,15 @@ class AgentOrchestrator:
         # Check if conversation history is currently asking for clarification on a goal
         if history:
             last_assistant_msg = next((m["content"] for m in reversed(history) if m.get("role") == "assistant"), "")
-            if any(q in last_assistant_msg.lower() for q in ["how much time", "what would success look like", "before i build your plan"]):
+            if any(q in last_assistant_msg.lower() for q in [
+                "how much time", "what would success look like", "before i build your plan",
+                "i'll need a few details", "what's your current level", "specific areas you want to focus"
+            ]):
                 return "CREATE_GOAL"
 
-        if any(p in text for p in ["i want to", "i plan to", "my goal is", "learn", "start", "prepare for", "get better at"]):
+        if any(p in text for p in ["i want to", "i plan to", "my goal is", "learn", "start", "prepare for", "get better at", "become internship-ready", "internship"]):
             return "CREATE_GOAL"
+
 
         # 2. LLM Classification
         prompt = f"""
@@ -142,6 +149,21 @@ class AgentOrchestrator:
                 return "Ready for your daily check-in! Once you create a goal, we can log daily reflections and adapt tasks.", None
             response = self.progress_agent.handle_daily_checkin(active_goal_id, user_message)
             return response, active_goal_id
+
+        elif intent == "VIEW_TODAY_TASKS":
+            if not active_goal_id:
+                return "You don't have an active goal yet. Start by setting an objective!", None
+            from tools.task_tools import get_today_tasks
+            today_tasks = get_today_tasks(active_goal_id)
+            goal = get_goal(active_goal_id)
+            if not today_tasks:
+                return f"No pending tasks scheduled for today on **{goal['title'] if goal else 'your goal'}**! You are fully caught up. 🎉", active_goal_id
+            lines = [f"### 📋 Today's Planned Tasks — {goal['title'] if goal else ''}\n"]
+            for t in today_tasks:
+                stat_icon = "✅" if t.get("status") == "completed" else "⏳"
+                lines.append(f"- {stat_icon} **{t['title']}** ({t.get('estimated_minutes', 45)} min) — *Priority: {t.get('priority', 'Medium')}*")
+            lines.append("\n💡 *Tip: Check tasks off directly in the Today's Tasks card on the right!*")
+            return "\n".join(lines), active_goal_id
 
         elif intent == "WEEKLY_REVIEW":
             if not active_goal_id:

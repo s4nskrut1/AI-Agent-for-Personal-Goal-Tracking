@@ -1,16 +1,7 @@
-"""UI Package for GoalMate."""
+from .styles import GOALMATE_CSS
 from .components import (
-    render_kpi_cards_html,
-    render_goals_sidebar_html,
-    render_tasks_list_html,
-    render_memory_badges_html,
-    create_progress_charts
+    render_hero_banner, render_current_goal_card, render_quick_stats_card,
+    render_today_tasks_card, render_weekly_chart_card, render_milestones_card,
+    render_recent_activity_card, render_sidebar_html, render_goal_detail_view
 )
-
-__all__ = [
-    "render_kpi_cards_html",
-    "render_goals_sidebar_html",
-    "render_tasks_list_html",
-    "render_memory_badges_html",
-    "create_progress_charts"
-]
+from .dashboard import build_app, JS_HEAD

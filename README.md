@@ -1,54 +1,68 @@
-# ✦ GoalMate — Autonomous AI Personal Goal Coach
+﻿# 🌱 GoalMate — Autonomous AI Personal Goal Tracking System
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![Gradio UI](https://img.shields.io/badge/UI-Gradio%206.0-orange.svg)](https://gradio.app/)
-[![Architecture](https://img.shields.io/badge/Agentic-Observe--Reason--Plan--Act--Adapt-purple.svg)](#agentic-architecture)
-[![Database](https://img.shields.io/badge/Storage-SQLite%203-lightgrey.svg)](https://sqlite.org/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
+[![Gradio UI](https://img.shields.io/badge/Frontend-Gradio%206.0-orange.svg)](https://gradio.app/)
+[![LLM](https://img.shields.io/badge/LLM-Google%20Gemini-4285F4.svg)](https://aistudio.google.com/)
+[![Security](https://img.shields.io/badge/Auth-JWT%20%2B%20Bcrypt-critical.svg)](#-authentication--security)
+[![Database](https://img.shields.io/badge/Storage-SQLite%20%2B%20SQLAlchemy-lightgrey.svg)](https://sqlite.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **GoalMate** is an academic-grade, production-ready Autonomous AI Personal Goal Coach built for Agentic AI coursework and real-world personal productivity. Unlike simple prompt-response chatbots or static CRUD todo apps, GoalMate actively observes user constraints, clarifies ambiguous objectives, synthesizes multi-week milestones, executes database operations via deterministic tools, monitors progress telemetry, and autonomously adapts schedules when life gets in the way.
+> **GoalMate** is an end-to-end, academic and hackathon-grade **Autonomous AI Personal Goal Coach**. 
+> Unlike passive todo list apps or simple chat wrappers that offer generic motivational quotes, GoalMate observes user progress, identifies when a user is falling behind or progressing faster than expected, diagnoses the underlying cause (missed days, academic crunch, shifted capacity), and dynamically adapts the schedule in the database without cognitive cramming.
 
 ---
 
 ## 📑 Table of Contents
-1. [Problem Statement & Objective](#problem-statement--objective)
-2. [Core Agentic Architecture](#core-agentic-architecture)
-3. [Key Capabilities & Features](#key-capabilities--features)
-4. [System Architecture Diagram](#system-architecture-diagram)
-5. [Tech Stack](#tech-stack)
-6. [Project Directory Structure](#project-directory-structure)
-7. [Installation & Setup](#installation--setup)
-8. [Running the Application](#running-the-application)
-9. [13-Step Viva Demonstration Walkthrough](#13-step-viva-demonstration-walkthrough)
-10. [Viva Evaluation & Architectural Defense](#viva-evaluation--architectural-defense)
-11. [Future Extensions](#future-extensions)
+1. [Core Product Idea & Agent vs. Chatbot](#-core-product-idea--agent-vs-chatbot)
+2. [Hero USP: Dynamic Adaptive Replanning](#-hero-usp-dynamic-adaptive-replanning)
+3. [System Architecture Diagram](#-system-architecture-diagram)
+4. [API Keys & Configuration Guide](#-api-keys--configuration-guide)
+5. [Directory Structure](#-directory-structure)
+6. [Authentication & Security](#-authentication--security)
+7. [Installation & Setup](#-installation--setup)
+8. [Running the Application](#-running-the-application)
+9. [15-Step Viva & Hackathon Demo Script](#-15-step-viva--hackathon-demo-script)
+10. [Visual Design & Assets](#-visual-design--assets)
+11. [Architectural Defense & FAQ](#-architectural-defense--faq)
 
 ---
 
-## 🎯 Problem Statement & Objective
+## 💡 Core Product Idea & Agent vs. Chatbot
 
-Traditional productivity applications suffer from two extremes:
-1. **Passive Todo Lists & Trackers**: Demand manual data entry, offer zero guidance on realistic pacing, and trigger guilt when tasks inevitably slip.
-2. **Standard LLM Chatbots**: Provide generic motivational advice and static markdown plans, but have no persistent application state, cannot perform real database mutations, and cannot dynamically replan a user's schedule when constraints change.
+### Why GoalMate is an AI Agent, NOT a Chatbot
 
-**GoalMate bridges this gap by implementing a complete autonomous agentic loop:**
-$$\text{Observe} \longrightarrow \text{Reason} \longrightarrow \text{Plan} \longrightarrow \text{Act} \longrightarrow \text{Observe} \longrightarrow \text{Adapt}$$
+Traditional productivity software falls into two flawed extremes:
+1. **Passive Todo Lists & Trackers**: Require tedious manual entry, lack intelligence on realistic pacing, and induce guilt when tasks inevitably slip.
+2. **Standard LLM Chatbots**: Provide boilerplate markdown advice without persistent memory, cannot mutate real databases deterministically, and cannot recalculate time constraints when life happens.
+
+**GoalMate implements a complete autonomous agentic loop:**
+$$\text{Observe} \longrightarrow \text{Reason} \longrightarrow \text{Plan} \longrightarrow \text{Act} \longrightarrow \text{Observe} \longrightarrow \text{Adapt} \longrightarrow \text{Re-plan}$$
+
+| Dimension | Generic LLM Chatbot | GoalMate Autonomous Agent |
+| :--- | :--- | :--- |
+| **State Persistence** | Ephemeral chat window only | Relational SQLite database with ACID guarantees & foreign key cascades |
+| **Authentication** | None / Single-tenant mock | Real bcrypt password hashing + signed JWT tokens with expiration |
+| **Action Execution** | Hallucinates markdown checkboxes | Executes validated Python tools (`create_goal`, `create_task`, `complete_task`) |
+| **Constraint Handling** | Ignores actual daily availability | Enforces strict daily minute capacity ceilings (e.g. 60m/day) |
+| **Schedule Slips** | Says *"Try harder tomorrow!"* | Diagnoses blockers, calculates lag, redistributes backlog, smooths workload |
+| **Data Validation** | Raw text without guarantees | Pydantic v2 schemas validating every request, response, and tool output |
+| **Offline Resilience** | Completely breaks if API key expires | Dual-engine with intelligent offline heuristic planner ensuring 100% demo uptime |
 
 ---
 
-## 🧠 Core Agentic Architecture
+## ⚡ Hero USP: Dynamic Adaptive Replanning
 
-GoalMate divides cognitive labor across specialized autonomous sub-agents coordinated by a central orchestrator:
+When a user reports:
+> *"I couldn't study for the last two days because college got hectic."*
 
-| Component | Role & Responsibilities |
-| :--- | :--- |
-| **Agent Orchestrator** | Intent classification, context gathering (active goal, memory profile, pending tasks), and deterministic agent routing. |
-| **Goal Agent** | Evaluates goal completeness, detects vague objectives, asks targeted clarifying questions (daily availability, timeframes), and structures goals. |
-| **Planner Agent** | Converts structured goals into sequential milestones and actionable daily tasks with realistic durations and priorities. |
-| **Progress Agent** | Evaluates completion percentages, streaks, consistency, and detects missed tasks or lagging trajectories. |
-| **Replanner Engine** | Algorithmic replanner that redistributes accumulated backlogs smoothly across upcoming days respecting daily time constraints without cognitive cramming. |
-| **Persistent Memory** | Retains non-sensitive user traits (e.g. night owl study habit, daily time limits, experience level) across sessions in SQLite. |
-| **Deterministic Tool Suite** | Direct database mutation layer (`create_goal`, `create_task`, `complete_task`, `reschedule_task`, etc.) ensuring no hallucinated actions. |
+GoalMate doesn't offer empty platitudes. Instead:
+1. **Compares Expected vs. Actual Pace**: Detects that 2 daily milestones slipped.
+2. **Diagnoses Context**: Recognizes academic crunch from conversation context and persists it to user memory.
+3. **Preserves Deadline**: Retains the original target milestone completion date where mathematically feasible.
+4. **Prevents Cognitive Cramming**: Smoothly spreads the unfinished tasks across the upcoming 3–6 days while capping tomorrow's restart day at **45 minutes** to rebuild psychological momentum.
+5. **Commits Database Mutations**: Updates `due_date` and sets `status = 'rescheduled'` with updated timestamps in SQLite.
+6. **Visibly Refreshes Dashboard**: Today's task list, progress percentage, streak, and weekly consistency bar chart update in real-time.
 
 ---
 
@@ -56,194 +70,239 @@ GoalMate divides cognitive labor across specialized autonomous sub-agents coordi
 
 ```mermaid
 flowchart TD
-    User([User / Gradio UI]) <--> Orchestrator[Agent Orchestrator\nIntent & Routing Engine]
-    
-    subgraph MemoryLayer [State & Persistence]
-        Memory[Persistent User Memory\nHabits, Constraints & Preferences]
-        DB[(SQLite Database\nGoals, Milestones, Tasks, Logs)]
+    subgraph Client [Gradio 6.0 Frontend + Custom CSS]
+        AuthView[Authentication Views\nLogin / Register / Forgot Password]
+        DashboardView[3-Column SaaS Dashboard\nSidebar | AI Coach Chat | Dashboard Cards]
+        GoalsView[My Goals & Milestone Roadmaps]
+        ProgressView[Telemetry & Consistency Analytics]
+        InsightsView[Behavioral AI Insights]
     end
 
-    subgraph SpecializedAgents [Specialized Autonomous Agents]
-        GoalAgent[Goal Agent\nClarification & Structuring]
-        PlannerAgent[Planner Agent\nMilestones & Task Synthesis]
-        ProgressAgent[Progress Agent\nTelemetry & Bottleneck Detection]
-        ReplannerAgent[Replanner Engine\nLag Detection & Adaptive Recovery]
+    subgraph BackendAPI [FastAPI Backend]
+        AuthRouter[/api/auth - JWT & Bcrypt]
+        GoalRouter[/api/goals - Goals & Milestones]
+        TaskRouter[/api/tasks - Daily Tasks & Status]
+        ProgressRouter[/api/progress - Analytics & Replanning]
     end
 
-    subgraph DeterministicTools [Execution Tool Suite]
-        GoalTools[Goal Tools\ncreate, update, get]
-        TaskTools[Task Tools\ncreate, complete, reschedule]
-        ProgressTools[Progress Tools\nmetrics, health, recovery plan]
+    subgraph ServiceLayer [Business Logic Services]
+        AuthService[Auth Service\nToken encoding/decoding, passlib]
+        GoalService[Goal Service\nCRUD & Multi-user isolation]
+        TaskService[Task Service\nToday's tasks, date shifts]
+        ProgressService[Progress Service\nStreak & pace calculation]
+        ResearchService[Research Service\nTavily Web Search]
     end
 
-    Orchestrator --> GoalAgent
-    Orchestrator --> PlannerAgent
-    Orchestrator --> ProgressAgent
-    Orchestrator --> ReplannerAgent
+    subgraph AgentLayer [Autonomous AI Agent]
+        AgentOrchestrator[Agent Orchestrator\nObserve -> Reason -> Route -> Act -> Adapt]
+        LLMClient[Isolated Gemini LLM Client\nagent/llm.py]
+        ToolSuite[Deterministic Tool Suite\ncreate_goal, complete_task, replan_goal, etc.]
+        ReplannerEngine[Adaptive Replanner\nBacklog smoothing without cramming]
+    end
 
-    SpecializedAgents <--> Memory
-    SpecializedAgents <--> DeterministicTools
-    DeterministicTools <--> DB
-    DB --> Dashboard[Gradio Dashboard & Visualizations]
+    subgraph StorageLayer [Persistence Layer]
+        SQLAlchemyORM[SQLAlchemy ORM Models]
+        SQLiteDB[(SQLite Database\ndata/goalmate.db)]
+    end
+
+    Client <--> BackendAPI
+    BackendAPI <--> ServiceLayer
+    ServiceLayer <--> AgentLayer
+    AgentLayer <--> ToolSuite
+    ToolSuite <--> SQLAlchemyORM
+    ServiceLayer <--> SQLAlchemyORM
+    SQLAlchemyORM <--> SQLiteDB
+    AgentLayer <--> ResearchService
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 🔑 API Keys & Configuration Guide
 
-- **Core Logic**: Python 3.10+
-- **UI Framework**: Gradio 6.0+ (Custom Dark SaaS Glassmorphism Theme)
-- **Data Persistence**: SQLite 3 (Thread-safe, relational schema with foreign key cascades)
-- **Visual Analytics**: Plotly (Interactive task status donuts & weekly productivity charts)
-- **LLM Integrations**: Google GenAI SDK (`gemini-2.5-flash`), Groq (`llama-3.3-70b-versatile`), and an **Autonomous Heuristic Fallback Engine** ensuring 100% offline functionality.
+### 1. Key Requirements Summary
+| Environment Variable | Status | Purpose | Where to Get |
+| :--- | :---: | :--- | :--- |
+| **`GEMINI_API_KEY`** | **REQUIRED** | Powers core AI Goal Coach, goal decomposition, planning & adaptive replanning | [Google AI Studio](https://aistudio.google.com/) |
+| **`JWT_SECRET_KEY`** | **REQUIRED** | Cryptographic secret for signing and verifying user session JWT tokens | Generate via `openssl rand -hex 32` or any 64-char string |
+| **`TAVILY_API_KEY`** | **OPTIONAL** | Enables live web research for courses, roadmaps & coding projects | [Tavily AI](https://tavily.com/) |
+
+### 2. Location of the `.env` File
+Create `.env` in the root of the project:
+```text
+C:\Users\SANSKRUTI\.gemini\antigravity\scratch\GoalMate\.env
+```
+
+```env
+# 1. PRIMARY LLM: Google Gemini API Key
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
+GEMINI_MODEL=gemini-2.5-flash
+
+# 2. AUTHENTICATION: JWT Secret Key
+JWT_SECRET_KEY=goalmate_academic_hackathon_super_secret_jwt_key_2026_x99
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# 3. WEB RESEARCH: Tavily API Key (Optional)
+TAVILY_API_KEY=YOUR_TAVILY_API_KEY_HERE
+
+# 4. DATABASE & SERVER
+DATABASE_URL=sqlite:///./data/goalmate.db
+PORT=7860
+HOST=127.0.0.1
+```
 
 ---
 
-## 📁 Project Directory Structure
+## 📁 Directory Structure
 
 ```text
 GoalMate/
-├── app.py                      # Main Gradio application entry point
-├── config.py                   # Configuration, environment loading, and model settings
-├── requirements.txt            # Python dependencies
-├── .env.example                # Template for optional API keys
-├── .gitignore                  # Git exclusions
-├── test_system.py              # Automated 13-step end-to-end verification test
-├── README.md                   # System documentation & viva guide
+├── app.py                     # Entry point: FastAPI server mounting Gradio app
+├── requirements.txt           # Verified clean dependencies
+├── README.md                  # Academic & hackathon-grade documentation
+├── .env.example               # Template for environment variables
+├── .env                       # Local secrets (gitignored)
+├── .gitignore                 # Ignores .env, __pycache__, *.db
+├── test_full_system.py        # Comprehensive 8-stage automated test suite
 │
-├── database/                   # Relational Persistence Layer
+├── backend/
 │   ├── __init__.py
-│   ├── schema.py               # SQLite schema (goals, milestones, tasks, logs, memory)
-│   └── db.py                   # Connection manager & demo data seeder
+│   ├── database.py            # SQLAlchemy engine, sessionmaker, Base, init_db()
+│   ├── models.py              # SQLAlchemy ORM models (User, Goal, Milestone, Task, ProgressLog)
+│   ├── schemas.py             # Pydantic v2 schemas for API requests & responses
+│   ├── auth.py                # Password hashing (bcrypt) & JWT token handlers
+│   └── routes.py              # FastAPI REST endpoints with user authentication
 │
-├── memory/                     # Long-term Semantic & Habit Memory
+├── agent/
 │   ├── __init__.py
-│   └── memory.py               # Extract, store, and retrieve user preferences
+│   ├── llm.py                 # Isolated Gemini LLM client (swappable provider)
+│   ├── prompts.py             # System instructions for GoalMate agent & planner
+│   ├── tools.py               # Deterministic tool suite callable by LLM
+│   ├── replanner.py           # Adaptive replanning engine (smoothing backlogs)
+│   └── agent.py               # Core agent loop: Observe -> Reason -> Act -> Adapt
 │
-├── tools/                      # Deterministic Tools Suite (Real DB Mutations)
+├── services/
 │   ├── __init__.py
-│   ├── goal_tools.py           # create_goal, get_goals, update_goal, delete_goal
-│   ├── task_tools.py           # create_task, complete_task, reschedule_task
-│   └── progress_tools.py       # calculate_progress, analyze_health, generate_recovery_plan
+│   ├── goal_service.py        # Goal & milestone business logic with user isolation
+│   ├── task_service.py        # Task CRUD, today's tasks, completion
+│   ├── progress_service.py    # Progress telemetry, streak & consistency calculation
+│   └── research_service.py    # Optional Tavily live web research + curated fallback
 │
-├── agents/                     # Multi-Agent Reasoning Layer
+├── ui/
 │   ├── __init__.py
-│   ├── llm_client.py           # Multi-provider gateway (Gemini / Groq / Fallback)
-│   ├── orchestrator.py         # Supervisor router & intent classifier
-│   ├── goal_agent.py           # Clarification detection & goal extractor
-│   ├── planner_agent.py        # Curriculum & milestone task synthesizer
-│   └── progress_agent.py       # Check-in, weekly review, and adaptive replanning
+│   ├── styles.py              # Custom CSS rules & base64 image loader
+│   ├── styles.css             # Base stylesheet (Cream & Sage Green aesthetic)
+│   ├── auth_ui.py             # Login, Register, and Forgot Password UI components
+│   └── components.py          # Visual HTML cards, metrics, and Plotly charts
 │
-├── ui/                         # Presentation Layer
-│   ├── __init__.py
-│   ├── components.py           # KPI cards, goal cards, task board, Plotly charts
-│   └── styles.css              # Custom SaaS glassmorphism CSS
+├── assets/
+│   ├── hiker.png              # Hiker on mountain cliff at sunrise
+│   ├── mountain_scene.png     # Mountain landscape over lake (Auth banner)
+│   ├── ai_robot.png           # Cute AI robot coach holding a sprout
+│   ├── auth_mockup.jpg        # Design reference for auth
+│   └── dashboard_mockup.jpg   # Design reference for dashboard
 │
 └── data/
-    └── goalmate.db             # Local SQLite database file
+    └── goalmate.db            # SQLite database file
 ```
 
 ---
 
-## ⚡ Installation & Setup
+## 🔒 Authentication & Security
 
-### 1. Clone the repository
+- **Bcrypt Password Hashing**: Plaintext passwords are never stored. Passwords are salted and hashed via `passlib[bcrypt]`.
+- **JWT Token Authentication**: Signed HMAC-SHA256 tokens contain `sub` (user ID), `email`, `exp`, and `iat`.
+- **Strict Multi-Tenant Isolation**: Every query (`Goal`, `Milestone`, `Task`, `ProgressLog`) filters by `user_id == current_user.id`. User A cannot view or mutate User B data.
+- **Clean First-Run Experience**: New users begin with an empty workspace and add only the goals, tasks, and progress they choose to track.
+
+---
+
+## 🛠️ Installation & Setup
+
 ```bash
-git clone https://github.com/your-username/GoalMate.git
+# 1. Clone repository
 cd GoalMate
-```
 
-### 2. Create and activate virtual environment
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
+# 2. Create and activate virtual environment
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
 
-# Linux / macOS
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-```bash
+# 3. Install verified dependencies
 pip install -r requirements.txt
-```
 
-### 4. (Optional) Configure Environment Variables
-GoalMate is equipped with an **Autonomous Heuristic Fallback Engine**, meaning **it runs 100% locally out-of-the-box even without an API key**!
-If you wish to use Google Gemini or Groq:
-```bash
+# 4. Copy environment configuration
 cp .env.example .env
-```
-Edit `.env`:
-```ini
-GEMINI_API_KEY=your_gemini_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
+# Edit .env and insert your GEMINI_API_KEY
 ```
 
 ---
 
 ## 🚀 Running the Application
 
-### Launch the Gradio Web Application:
+### Start Application Server:
 ```bash
 python app.py
 ```
-Open your browser and navigate to:
-```
-http://127.0.0.1:7860
-```
+Open **`http://127.0.0.1:7860`** in your browser.
 
-### Run the Automated End-to-End Test Suite:
+### Run Automated System Verification:
 ```bash
-python test_system.py
+python test_full_system.py
 ```
 
 ---
 
-## 🎬 13-Step Viva Demonstration Walkthrough
+## 🎬 15-Step Viva & Hackathon Demo Script
 
-You can execute this exact 13-step demonstration live during your presentation or defense:
+For your college presentation, follow these exact 15 steps to showcase the full depth of GoalMate:
 
-| Step | User Action | Agentic AI Response & System Behavior |
-| :---: | :--- | :--- |
-| **1** | `"I want to learn Python in two months."` | **Observe & Reason**: Agent detects the goal is missing a daily time constraint. |
-| **2** | *(Agent response)* | **Clarification**: *"Great! 🎯 Before I build your plan, how much time can you realistically spend on this each day?"* |
-| **3** | `"About 1 hour."` | **Observe & Store**: Agent extracts 60 mins/day, creates structured Goal record in SQLite. |
-| **4** | *(Plan Synthesis)* | **Planner Agent**: Generates 6 sequenced milestones and 13 daily tasks. |
-| **5** | *(Persistence)* | **Act**: Tasks are inserted into SQLite with due dates, priorities, and durations. |
-| **6** | Click `[ ✅ Mark Selected Task Done ]` | **Act**: Task #1 marked complete in SQLite; completion timestamp recorded. |
-| **7** | Dashboard updates | **Telemetry**: Overall progress moves to 7.7%, streak advances to 1 day. |
-| **8** | `"I haven't studied for four days."` | **Observe**: Agent parses 4-day lag from conversation. |
-| **9** | *(DB Inspection)* | **Reason**: Progress Agent queries SQLite to inspect pending/overdue tasks. |
-| **10** | *(Lag Detection)* | **Reason**: Identifies 4 missed days and accumulated backlog. |
-| **11** | *(Recovery Planning)* | **Plan**: Generates recovery schedule spreading tasks across next week to prevent cramming. |
-| **12** | *(DB Adaptation)* | **Act**: Updates task due dates in SQLite directly (`status = 'rescheduled'`). |
-| **13** | Dashboard refresh | **Feedback**: Chat explains exact shifted dates; dashboard reflects updated timeline. |
-
----
-
-## 🎓 Viva Evaluation & Architectural Defense
-
-When presenting this project for an **Agentic AI course**, use these answers during your viva:
-
-### Q1: How does GoalMate differ from a standard LLM chatbot with system prompts?
-> *"A standard chatbot only generates text responses; it lacks persistent state, environment interaction, and closed-loop feedback. GoalMate implements the complete agentic cycle (**Observe → Reason → Plan → Act → Observe → Adapt**). It interacts with an external environment (SQLite), invokes deterministic tools, persists user constraints into long-term memory, and performs real state mutations. If the agent states that a task was rescheduled, a real database record was updated."*
-
-### Q2: How is Adaptive Replanning implemented to avoid cognitive overload?
-> *"When a user falls behind (e.g. misses 4 days), naive systems either do nothing or cram 4 days of work into today. GoalMate's Replanner Engine enforces a daily time ceiling ($C_{\text{daily}} = 60\text{ min}$). It sorts overdue tasks by priority (High $\rightarrow$ Medium $\rightarrow$ Low), places at most one or two tasks per day starting today, and cascades future tasks forward. This prevents cognitive exhaustion and promotes sustainable habit formation."*
-
-### Q3: How is resilience guaranteed during API failures or quota exhaustion?
-> *"GoalMate implements a resilient multi-tier LLM architecture. It tries Google Gemini 2.5 Flash, then Groq, and if no API key is provided or if network fails, it falls back to a deterministic Autonomous Heuristic Engine. This ensures the application never crashes and can be reliably evaluated in offline academic environments."*
+1. **Boot Screen**: Open `http://127.0.0.1:7860`. Highlight the **Split-Banner Authentication** view matching Mockup #2 with the mountain scene illustration and rating badges.
+2. **User Registration**: Click **Create Account**, enter name (e.g. `Alex Rivera`), email, and password. Point out that passwords are hashed via **bcrypt** and an authenticated **JWT token** is issued.
+3. **Login Transition**: Click **Sign In**. Watch the UI smoothly reveal the **3-Column SaaS Dashboard** matching Mockup #1.
+4. **Top Header**: Highlight the personalized greeting *"Good Evening, Alex! 👋"*, the discipline quote pill, and the active **5-day streak** badge.
+5. **Left Sidebar**: Show the GoalMate brand logo, the navigation links, the **Climber Art card** (*"Climb Higher Every Day"*) using `assets/hiker.png`, and the motivational quote card.
+6. **Center AI Coach**: Point out the cute robot avatar from `assets/ai_robot.png` and the *"Online • Adaptive Planning Active"* status pill.
+7. **Interactive Quick Chips**: Point out the clickable chips beneath the chat: *"I'm ready for tomorrow! 🚀"*, *"Show Today's Tasks"*, *"Recommend Free Resources"*.
+8. **Right Column Cards**: Show the **4 KPI cards** (Streak, Progress %, Health, Consistency), the **Current Goal** card with progress bar, and the **Today's Tasks** checklist.
+9. **Interactive Task Completion**: Select a task from the Quick Complete dropdown and click **"✅ Done"**. Watch the streak increment, progress percentage rise to **62.5%**, and the AI coach celebrate in chat.
+10. **The Hero Feature — Slipped Schedule Report**: Click the chip: *"I couldn't study for the last two days because college got hectic"*.
+11. **Observe AI Diagnosis**: Watch GoalMate diagnose the missed days, acknowledge the college crunch with empathy, and explain the recovery strategy without guilt.
+12. **Verify Workload Cap**: Show that tomorrow's restart day is capped at **<= 45 minutes** (one focused task) to rebuild momentum.
+13. **Verify SQLite Database Mutation**: Show that subsequent tasks have been redistributed smoothly and their status updated to `rescheduled` in SQLite.
+14. **Web Research via Tavily**: Ask *"Recommend the best free courses and practice sites for Python"*. Show how the research service retrieves curated or live web resources.
+15. **Multi-User Isolation**: Sign out, create a second user (e.g. `Sam Smith`), and prove that Sam's database records are strictly isolated from Alex's.
 
 ---
 
-## 🔮 Future Extensions
-- **Multi-Modal Goal Tracking**: Support uploading photo proof of completed workouts or study notes with Gemini Vision verification.
-- **Calendar Synchronization**: Export tasks to Google Calendar or iCal via standard `.ics` feeds.
-- **Biometric Integration**: Connect with Apple Health / Google Fit to adapt fitness plans based on recovery and sleep scores.
+## 🎨 Visual Design & Assets
+
+The UI faithfully implements the **Cream & Sage Green** visual aesthetic from the reference designs:
+- **Canvas Background**: Light cream (`#F8F9F5` / `#FBF9F4`)
+- **Primary Accent**: Forest & Sage Green (`#2D6A4F`, `#22543D`, `#EAF4EE`)
+- **Warm Highlights**: Peach & Amber (`#FFF5EC`, `#FFDCC3`, `#D97706`)
+- **Typography**: Clean modern sans-serif with Playfair Display italic accents
+- **Custom Graphic Assets**:
+  - `assets/mountain_scene.png`: Mountain landscape over serene lake for Auth banner
+  - `assets/hiker.png`: Climber reaching mountain summit for sidebar motivation
+  - `assets/ai_robot.png`: Friendly AI robot coach avatar holding a sprout
+
+---
+
+## 🏛️ Architectural Defense & FAQ
+
+### Q: Why SQLite instead of an external cloud database for the demo?
+> **Answer**: SQLite requires zero local setup, has zero cloud credential dependencies, and supports full ACID transactions and foreign keys. It guarantees the application boots anywhere immediately, while the SQLAlchemy ORM makes migrating to PostgreSQL simply a 1-line change to `DATABASE_URL`.
+
+### Q: How does GoalMate prevent hallucination during goal planning?
+> **Answer**: All LLM outputs are parsed through structured JSON schemas. Tool calls are strictly deterministic Python functions that validate inputs using Pydantic v2 before persisting them to the database.
+
+### Q: Why do you cap tomorrow's restart session at 45 minutes?
+> **Answer**: Based on behavioral psychology and atomic habits research, schedule slips cause cognitive guilt and anxiety. Cramming overdue tasks into the next day leads to burnout and abandonment. Capping tomorrow's restart workload guarantees a quick win that rebuilds streak momentum.
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is open-source under the **MIT License**.

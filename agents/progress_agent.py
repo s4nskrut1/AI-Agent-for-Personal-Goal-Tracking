@@ -27,70 +27,17 @@ class ProgressAgent:
     ) -> str:
         """
         Executes autonomous plan adaptation when the user falls behind or reports missed days.
-        Actually modifies SQLite database task schedules.
+        Actually modifies SQLite database task schedules using AdaptiveReplanner.
         """
-        text = user_message.lower()
-        goal = get_goal(goal_id)
-        if not goal:
-            return "No active goal found to replan."
+        from agents.replanner import AdaptiveReplanner
+        replanner = AdaptiveReplanner()
+        result = replanner.evaluate_and_replan(
+            goal_id=goal_id,
+            user_message=user_message,
+            missed_days=missed_days
+        )
+        return result["formatted_response"]
 
-        # Detect missed days from message if not explicitly passed
-        if missed_days is None:
-            days_match = re.search(r'(\d+)\s*days?', text)
-            if days_match:
-                missed_days = int(days_match.group(1))
-            elif "four" in text or "4" in text:
-                missed_days = 4
-            elif "three" in text or "3" in text:
-                missed_days = 3
-            elif "two" in text or "2" in text:
-                missed_days = 2
-            elif "week" in text:
-                missed_days = 7
-            else:
-                missed_days = 3
-
-        # Check for new time constraint in message (e.g. "only 30 minutes per day now")
-        time_match = re.search(r'(\d+)\s*(min|minute|hour|hr)s?', text)
-        new_daily_mins = None
-        if time_match:
-            qty = int(time_match.group(1))
-            unit = time_match.group(2)
-            new_daily_mins = qty * 60 if "h" in unit else qty
-
-        # Execute recovery plan tool (real database update)
-        if new_daily_mins and new_daily_mins != goal.get("daily_time_minutes"):
-            result = replan_goal(
-                goal_id=goal_id,
-                new_daily_time_minutes=new_daily_mins,
-                adjustment_reason=f"User requested capacity change to {new_daily_mins}m/day"
-            )
-            save_user_memory("daily_available_time", f"{new_daily_mins} minutes per day", category="constraint")
-            adjusted_msg = f"updated your daily study capacity to **{new_daily_mins} minutes/day** and "
-        else:
-            result = generate_recovery_plan(
-                goal_id=goal_id,
-                missed_days=missed_days,
-                new_daily_minutes=goal.get("daily_time_minutes", 60)
-            )
-            adjusted_msg = ""
-
-        rescheduled = result.get("rescheduled_tasks", [])
-        rescheduled_count = len(rescheduled)
-        
-        # Build intelligent, empathetic response
-        lines = [
-            f"You've missed your **{goal['title']}** target for {missed_days} consecutive days.",
-            f"Rather than cramming everything into one stressful session, I've {adjusted_msg}redistributed your {rescheduled_count} pending/overdue tasks smoothly across the next week to keep your daily workload sustainable.\n",
-            "**Schedule Adjustments Applied in Database:**"
-        ]
-        for item in rescheduled[:4]:
-            lines.append(f"- 🔄 `{item['new_date']}`: **{item['title']}** *(shifted from {item['previous_date']})*")
-        if rescheduled_count > 4:
-            lines.append(f"- *...and {rescheduled_count - 4} additional tasks shifted forward.*")
-            
-        lines.append("\n💡 **Next Step**: Don't worry about the past few days. Just focus on today's single 30–45 minute task to rebuild your momentum!")
-        return "\n".join(lines)
 
     def handle_daily_checkin(self, goal_id: int, user_message: str) -> str:
         """

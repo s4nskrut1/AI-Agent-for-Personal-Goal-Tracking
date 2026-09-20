@@ -34,6 +34,10 @@ class GoalAgent:
                 has_time_in_history = True
                 break
 
+        # Check if user says "just create a plan" or "skip"
+        if any(term in text for term in ["just create a plan", "skip", "default", "go ahead"]):
+            return True, ""
+
         # Case 1: Extremely vague goal (e.g. "I want to get better at fitness", "get healthy", "learn coding")
         if any(term in text for term in ["get better at fitness", "get fit", "get healthy", "improve health"]):
             return False, (
@@ -47,17 +51,25 @@ class GoalAgent:
                 "(e.g., Python for AI/Data, JavaScript for Web Development), and do you have any prior coding experience?"
             )
 
-        # Case 2: Goal statement has goal & duration (e.g. "I want to learn Python in 2 months") but missing daily time constraint
+        # Case 2: Goal statement has goal & duration (e.g. "I want to become internship-ready in Python in 3 months") but missing daily time constraint
         has_duration = bool(re.search(r'(\d+)\s*(month|week|day)s?', text))
-        has_python_or_study = any(k in text for k in ["python", "ai", "machine learning", "guitar", "read", "study", "exam", "course"])
+        has_python_or_study = any(k in text for k in ["python", "internship", "ai", "machine learning", "guitar", "read", "study", "exam", "course"])
         
         if (has_duration or has_python_or_study) and not has_time_in_message and not has_time_in_history:
             # Check user memories if daily_available_time is already remembered
             memories = {m["key"]: m["value"] for m in get_all_memories()}
             if "daily_available_time" not in memories:
-                return False, "Great! 🎯 Before I build your plan, how much time can you realistically spend on this each day?"
+                return False, (
+                    "That's an amazing goal! 🚀\n\n"
+                    "To create the best plan for you, I'll need a few details:\n"
+                    "1. **What's your current level?** (Beginner / Some knowledge / Intermediate)\n"
+                    "2. **How much time can you dedicate per day or per week?**\n"
+                    "3. **Do you have any specific areas you want to focus on?** (e.g., Data Science, Web Dev, Projects)\n\n"
+                    "Once I have this, I'll create a personalized roadmap for you!"
+                )
 
         return True, ""
+
 
     def extract_goal_parameters(self, user_message: str, conversation_history: list) -> Dict[str, Any]:
         """

@@ -138,3 +138,20 @@ def get_milestones(goal_id: int, db_path: Optional[str] = None) -> List[Dict[str
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM milestones WHERE goal_id = ? ORDER BY order_index ASC", (goal_id,))
         return [dict(row) for row in cursor.fetchall()]
+
+
+def create_milestones(goal_id: int, milestones: List[Dict[str, Any]], db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Batch creates multiple milestones for a goal."""
+    results = []
+    for idx, m in enumerate(milestones, start=1):
+        created = create_milestone(
+            goal_id=goal_id,
+            title=m.get("title", f"Milestone {idx}"),
+            description=m.get("description", ""),
+            order_index=m.get("order_index", idx),
+            target_date=m.get("target_date"),
+            db_path=db_path
+        )
+        results.append(created)
+    return results
+

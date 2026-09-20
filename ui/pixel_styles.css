@@ -1,0 +1,808 @@
+﻿/* ==========================================================================
+   GoalMate Pixel-Perfect Stylesheet matching reference (media_1789289509305.jpg)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,500;1,600&display=swap');
+
+/* Global Reset on Gradio Shell */
+body, .gradio-container {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  background-color: #F3F6F3 !important;
+  color: #1B2D22 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.gradio-container {
+  max-width: 1440px !important;
+  margin: 0 auto !important;
+  padding: 14px 20px !important;
+}
+
+/* Hide Gradio footer and header junk */
+footer { display: none !important; }
+.gradio-container > .prose { display: none !important; }
+
+/* Main Wrapper */
+.gm-app-wrapper {
+  display: flex;
+  gap: 22px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   LEFT SIDEBAR
+   ========================================================================== */
+.gm-sidebar {
+  width: 195px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: calc(100vh - 40px);
+}
+
+.gm-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 18px 8px;
+}
+
+.gm-leaf-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.gm-brand-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #1B2D22;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.gm-brand-tagline {
+  font-size: 11px;
+  font-weight: 500;
+  color: #728476;
+}
+
+.gm-nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nav-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #526356;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.nav-menu-item:hover {
+  background-color: #E8EFE8;
+  color: #1B2D22;
+}
+
+.nav-menu-item.active {
+  background-color: #DDEBE0;
+  color: #1E4D2B;
+  font-weight: 700;
+}
+
+.nav-item-icon {
+  font-size: 16px;
+}
+
+.sidebar-bottom-art {
+  margin-top: auto;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(27, 45, 34, 0.04);
+}
+
+.sidebar-hiker-image {
+  width: 100%;
+  display: block;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+/* ==========================================================================
+   MAIN CONTENT & HEADER
+   ========================================================================== */
+.gm-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gm-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px 8px 4px;
+}
+
+.greeting-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1B2D22;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.4px;
+}
+
+.greeting-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6F8174;
+  margin: 0;
+}
+
+.greeting-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quote-pill-badge {
+  background: #FFFFFF;
+  border: 1px solid #E2E8E1;
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 12.5px;
+  color: #55685B;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+
+.quote-leaf {
+  font-size: 14px;
+  font-style: normal;
+}
+
+.streak-pill-badge {
+  background: #FFF1E6;
+  border: 1px solid #FFDFC9;
+  border-radius: 9999px;
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+
+.flame-icon {
+  font-size: 15px;
+}
+
+.streak-bold {
+  font-size: 14px;
+  font-weight: 800;
+  color: #C05621;
+}
+
+.streak-sub {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #C05621;
+}
+
+.user-avatar-circle-lg {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #255238;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(37, 82, 56, 0.25);
+}
+
+/* ==========================================================================
+   WORKSPACE GRID (CENTER + RIGHT)
+   ========================================================================== */
+.gm-workspace-grid {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+/* Center Column */
+.gm-center-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gm-coach-card {
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 1px solid #E8EFE8;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.025);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.coach-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F0F4F0;
+  margin-bottom: 14px;
+}
+
+.coach-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coach-avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #EAF4EC;
+  padding: 2px;
+}
+
+.coach-title-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coach-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1B2D22;
+}
+
+.coach-status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #16A34A;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.green-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16A34A;
+}
+
+.coach-tagline {
+  font-size: 12px;
+  color: #728476;
+  margin: 2px 0 0 0;
+}
+
+.clear-chat-btn {
+  background: #FFFFFF;
+  border: 1px solid #E0E7DE;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #526356;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.clear-chat-btn:hover {
+  background: #F4F7F4;
+  border-color: #C8D4C5;
+}
+
+/* Chat Bubbles */
+.coach-chat-stream {
+  max-height: 380px;
+  min-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.chat-bubble-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.bot-avatar-wrap {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.avatar-robot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.chat-bubble {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #1B2D22;
+}
+
+.bot-bubble {
+  background: #F5F7F4;
+  border-radius: 18px 18px 18px 4px;
+  padding: 14px 18px;
+  max-width: 86%;
+}
+
+.user-row {
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.user-bubble {
+  background: #DDEEE1;
+  color: #143C25;
+  font-weight: 500;
+  border-radius: 18px 18px 4px 18px;
+  padding: 12px 18px;
+  max-width: 82%;
+}
+
+.user-avatar-circle-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #255238;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Numbered Steps in Chat */
+.numbered-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.numbered-step-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13.5px;
+}
+
+.step-num-badge {
+  background: #2563EB;
+  color: #FFFFFF;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Quick Prompt Chips */
+.quick-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.quick-chip-pill {
+  background: #FFFFFF;
+  border: 1px solid #D9E3D8;
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #405246;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.quick-chip-pill:hover {
+  background: #EAF3EC;
+  border-color: #2D6A4F;
+  color: #2D6A4F;
+  transform: translateY(-1px);
+}
+
+/* Input Bar */
+.chat-input-pill-box {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1.5px solid #DEE5DD;
+  border-radius: 9999px;
+  padding: 6px 8px 6px 16px;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+
+.paperclip-icon {
+  font-size: 16px;
+  color: #7B8D80;
+  cursor: pointer;
+}
+
+.chat-text-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  color: #1B2D22;
+  font-family: inherit;
+  background: transparent;
+}
+
+.chat-text-input::placeholder {
+  color: #92A396;
+}
+
+.send-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #255238;
+  border: none;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.send-action-btn:hover {
+  background: #1C412C;
+}
+
+/* Bottom 4 Cards */
+.bottom-action-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.bottom-card {
+  background: #FFFFFF;
+  border: 1px solid #EAEFEA;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  user-select: none;
+}
+
+.bottom-card:hover {
+  border-color: #2D6A4F;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.bottom-card-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.bottom-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1B2D22;
+  line-height: 1.2;
+}
+
+.bottom-card-sub {
+  font-size: 11px;
+  color: #728476;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   RIGHT COLUMN CARDS
+   ========================================================================== */
+.gm-right-column {
+  width: 325px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dash-white-card {
+  background: #FFFFFF;
+  border: 1px solid #EAEFEA;
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.dash-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.dash-card-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #1B2D22;
+}
+
+.dash-card-link {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #2D6A4F;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dash-card-link:hover {
+  text-decoration: underline;
+}
+
+/* Card 1: Current Goal */
+.goal-identity-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.python-badge-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.goal-name-heading {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1B2D22;
+  flex: 1;
+  line-height: 1.3;
+}
+
+.status-pill-ontrack {
+  background: #E2F5E7;
+  color: #1E6B39;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.goal-progress-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.progress-track-bg {
+  flex: 1;
+  height: 7px;
+  background: #E8EFE8;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-fill-active {
+  height: 100%;
+  background: #2D6A4F;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.progress-pct-bold {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1B2D22;
+}
+
+.goal-meta-trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #F0F4F0;
+}
+
+.meta-column-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-label-tiny {
+  font-size: 11px;
+  color: #7A8C7F;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.meta-val-strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1B2D22;
+}
+
+/* Card 2: Today's Tasks */
+.tasks-vertical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-item-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.task-checkbox {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  border: 1.5px solid #BDCABD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #FFFFFF;
+  transition: all 0.15s ease;
+}
+
+.task-checkbox.checked {
+  background: #2D6A4F;
+  border-color: #2D6A4F;
+}
+
+.task-title-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1B2D22;
+}
+
+.task-title-text.done {
+  color: #8C9E90;
+  text-decoration: line-through;
+}
+
+.task-duration-badge {
+  background: #F4F7F4;
+  color: #6A7B6E;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+/* Card 3: Weekly Progress */
+.consistency-percentage-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2D6A4F;
+}
+
+.weekly-bars-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 80px;
+  padding: 10px 4px 0 4px;
+}
+
+.bar-column-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 6px;
+  width: 24px;
+}
+
+.bar-tube-fill {
+  width: 13px;
+  background: #6AA581;
+  border-radius: 4px 4px 2px 2px;
+  transition: height 0.3s ease;
+}
+
+.bar-day-name {
+  font-size: 11px;
+  color: #7F9184;
+  font-weight: 600;
+}
+
+/* Card 4: Motivation for You */
+.motivation-peach-card {
+  background: #FFF1E6;
+  border: 1px solid #FFDFC9;
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+
+.peach-quote-mark {
+  font-size: 26px;
+  line-height: 1;
+  color: #DD6B20;
+  margin-bottom: 2px;
+}
+
+.peach-quote-text {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 13.5px;
+  color: #2B3A2E;
+  line-height: 1.45;
+  margin: 0 0 6px 0;
+}
+
+.peach-quote-author {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #C05621;
+  margin: 0;
+}

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoalMate — Small steps. Big dreams.</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" type="image/png" href="/assets/images/hinata_avatar.jpg">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- LEFT SIDEBAR (Background with overlay text & buttons) -->
+        <aside id="app-sidebar" class="sidebar">
+            <div class="sidebar-overlay-shade"></div>
+            
+            <div class="sidebar-content-wrapper">
+                <!-- Brand Logo -->
+                <div class="sidebar-brand" onclick="AppRouter.navigate('home')">
+                    <div class="brand-logo-icon">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                            <path d="M4 16C10 10 16 6 28 4C24 16 20 22 14 28C10 24 6 20 4 16Z" fill="url(#brandGrad)" />
+                            <path d="M12 16C16 12 20 10 26 8C23 15 20 19 16 23C13 21 11 18 12 16Z" fill="#FF8C42" />
+                            <defs>
+                                <linearGradient id="brandGrad" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#3B82F6"/>
+                                    <stop offset="1" stop-color="#FF6B35"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="brand-text-wrap">
+                        <h1 class="brand-name">GoalMate<span class="brand-dot">.</span></h1>
+                        <span class="brand-tagline">Small steps. Big dreams.</span>
+                    </div>
+                </div>
+
+                <!-- Clean Navigation (Home & Goals) -->
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" data-route="home" onclick="AppRouter.navigate('home')">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-label">Home</span>
+                    </button>
+                    <button class="nav-item" data-route="goals" onclick="AppRouter.navigate('goals')">
+                        <span class="nav-icon">🎯</span>
+                        <span class="nav-label">Goals</span>
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <div class="main-wrapper">
+            <!-- TOP APP BAR -->
+            <header class="top-app-bar">
+                <div class="top-bar-left">
+                    <button class="mobile-menu-toggle" onclick="AppRouter.toggleMobileSidebar()">☰</button>
+                    <!-- Global Search Bar with Ctrl+K -->
+                    <div class="header-search-bar" onclick="AppRouter.openSearchModal()">
+                        <span class="search-lens-icon">🔍</span>
+                        <span class="search-placeholder">Search goals, tasks, or anything...</span>
+                        <span class="search-shortcut-badge">Ctrl K</span>
+                    </div>
+                </div>
+
+                <div class="top-bar-right">
+                    <!-- User Avatar -->
+                    <div class="header-profile">
+                        <img src="/assets/images/hinata_avatar.jpg" alt="Profile" class="header-avatar-img" />
+                        <span class="header-avatar-online"></span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- APP BODY CONTAINER (MAIN DASHBOARD + GRADIO AI COACH) -->
+            <div class="app-body-container">
+                <!-- Center Main View -->
+                <main id="main-view-content" class="main-content-scroll">
+                    <!-- Injected by app.js / dashboard.js / goals.js -->
+                </main>
+
+                <!-- RIGHT COLUMN: AI COACH (Native UI from reference) -->
+                <aside id="ai-coach-panel" class="coach-side-panel">
+                    <!-- Injected by coach.js -->
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL MODAL CONTAINER -->
+    <div id="global-modal-container"></div>
+
+    <!-- Scripts -->
+    <script src="/js/store.js"></script>
+    <script src="/js/streaks.js"></script>
+    <script src="/js/components/coach.js"></script>
+    <script src="/js/components/dashboard.js"></script>
+    <script src="/js/components/goals.js"></script>
+    <script src="/js/components/goalDetail.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

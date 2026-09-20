@@ -109,7 +109,10 @@ class PlannerAgent:
         try:
             raw_json = llm_client.generate_response(prompt, json_mode=True)
             clean_str = re.sub(r'```(?:json)?\s*|\s*```', '', raw_json).strip()
-            return json.loads(clean_str)
+            parsed = json.loads(clean_str)
+            from database.models import LLMGoalPlan
+            validated = LLMGoalPlan.model_validate(parsed)
+            return validated.model_dump()
         except Exception:
             return None
 
