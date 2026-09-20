@@ -339,58 +339,11 @@ This allows planning to become more personalized over time.
 
 # 🏗️ Architecture
 
-~~~text
-┌─────────────────────────────────────────────────────────────┐
-│                         USER / BROWSER                      │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     GRADIO INTERFACE                        │
-│                 HTML • CSS • JavaScript                     │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       FASTAPI LAYER                         │
-│               Auth • Goals • Tasks • Progress               │
-└───────────────┬─────────────────────────────┬───────────────┘
-                │                             │
-                ▼                             ▼
-┌──────────────────────────┐      ┌───────────────────────────┐
-│      AGENT RUNTIME       │      │      MEMORY LAYER         │
-│                          │      │                           │
-│ Gemini                   │      │ Preferences               │
-│ Intent routing           │      │ Constraints               │
-│ Tool calling             │      │ Context                   │
-│ Replanning               │      │                           │
-└────────────┬─────────────┘      └─────────────┬─────────────┘
-             │                                  │
-             ▼                                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     DOMAIN SERVICES                         │
-│       Goals • Milestones • Tasks • Progress • Search        │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   SQLAlchemy / SQLite                       │
-│                                                             │
-│ Users • Goals • Milestones • Tasks • Activity Logs          │
-└─────────────────────────────────────────────────────────────┘
-~~~
+<p align="center">
+  <img src="./screenshots/architecture%20diagram.png" alt="GoalMate System Architecture" width="96%"/>
+</p>
 
-### Database model
-
-The relational core contains:
-
-- <strong>Users</strong>
-- <strong>Goals</strong>
-- <strong>Milestones</strong>
-- <strong>Tasks</strong>
-- <strong>Activity Logs</strong>
-
-Goals own milestones, tasks and activity history, while users own their goals.
+The architecture diagram above shows how the GoalMate interface, backend, AI agent layer, domain services and persistent database work together.
 
 ---
 
