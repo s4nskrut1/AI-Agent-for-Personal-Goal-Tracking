@@ -194,7 +194,9 @@ if __name__ == "__main__":
         print(f"  [OK] Gemini API key: {api_key[:8]}...{api_key[-4:]}")
     else:
         print("  [WARN] No GEMINI_API_KEY -- AI Coach will use fallback mode")
-    print("  -> Running on: http://127.0.0.1:7860")
+    port = int(os.environ.get("PORT", 7860))
+    host = os.environ.get("HOST", "0.0.0.0")
+    print(f"  -> Running on: http://{host}:{port}")
     print("=" * 55 + "\n")
 
-    uvicorn.run(app, host="127.0.0.1", port=7860, log_level="warning")
+    uvicorn.run(app, host=host, port=port, log_level="warning")

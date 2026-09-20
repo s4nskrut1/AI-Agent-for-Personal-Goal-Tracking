@@ -1,4 +1,4 @@
-﻿fastapi>=0.110.0
+fastapi>=0.110.0
 uvicorn>=0.28.0
 gradio>=5.0.0
 sqlalchemy>=2.0.0
@@ -10,4 +10,5 @@ python-dotenv>=1.0.0
 google-genai>=2.0.0
 plotly>=5.19.0
 pandas>=2.2.0
+requests>=2.31.0
 tavily-python>=0.3.0
