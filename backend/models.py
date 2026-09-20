@@ -144,6 +144,12 @@ def init_db():
     except Exception:
         pass
 
+    try:
+        from backend.seed import seed_default_user_and_goals
+        seed_default_user_and_goals()
+    except Exception as e:
+        print(f"[WARN] Auto-seed error: {e}")
+
 
 def get_db():
     db = SessionLocal()
